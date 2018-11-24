@@ -1,0 +1,83 @@
+<html>
+    <head></head>
+    <body>
+        <script src="shapes.js"></script>
+        <script src="statemanager.js"></script>
+        <script src="playstate.js"></script>
+        <script>
+            
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+
+            const WIDTH = 500;
+            const HEIGHT = 500;
+
+            canvas.width = WIDTH;
+            canvas.height = HEIGHT;
+            canvas.style.border = '1px solid black';
+            document.body.append(canvas);
+
+            let stateManager = new StateManager(canvas);
+            let playstate = new PlayState(stateManager);
+
+            stateManager.push(playstate);
+
+            function update(){
+                stateManager.update(); 
+            }
+
+            function render(){
+                context.clearRect(0, 0, canvas.width, canvas.height);      
+                stateManager.render(context);
+            }
+
+            function run(time){
+                update();
+                render();
+                requestAnimationFrame(run);
+            }
+
+            var requestAnimationFrame = typeof requestAnimationFrame === 'function' ? requestAnimationFrame : (function() {
+            var lastTimestamp = Date.now(),
+                now,
+                timeout;
+            return function(callback) {
+                now = Date.now();
+                timeout = Math.max(0, timestep - (now - lastTimestamp));
+                lastTimestamp = now + timeout;
+                return setTimeout(function() {
+                    callback(now + timeout);
+                }, timeout);
+            };
+            })(), cancelAnimationFrame = typeof cancelAnimationFrame === 'function' ? cancelAnimationFrame : clearTimeout;
+
+            requestAnimationFrame(run);
+            
+            canvas.onmousedown = function(e){
+                var pos = getPos(canvas, e);
+                stateManager.peek().mousedown(pos);
+            }
+
+            canvas.onmousemove = function(e){
+                var pos = getPos(canvas, e);
+                stateManager.peek().mousemove(pos);
+            }
+
+            canvas.onmouseup = function(e){
+                var pos = getPos(canvas, e);
+                stateManager.peek().mouseup(pos);
+            }
+
+            window.onkeyup = function(e){
+                stateManager.peek().keyup(e);
+            }
+
+            function getPos(c, e){
+                var rect = c.getBoundingClientRect();
+                return {x:e.clientX - rect.left, y: e.clientY - rect.top};
+            }
+
+        </script>
+
+    </body>
+</html>
